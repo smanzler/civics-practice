@@ -5,15 +5,16 @@ import civics, { CivicsQuestion } from "@/lib/civics";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { gradeAnswer, GradeResult } from "@/lib/grade";
 import { Badge } from "@/components/ui/badge";
 import { Field, FieldLabel, FieldSet } from "@/components/ui/field";
 import { ArrowRight, Check, X } from "lucide-react";
+import { gradeAnswer, GradeResult } from "../actions";
 
 export default function Page() {
   const [question, setQuestion] = useState<CivicsQuestion>();
   const [answer, setAnswer] = useState<string>("");
   const [result, setResult] = useState<GradeResult>();
+  const [submitting, setSubmitting] = useState(false);
 
   const getQuestion = () => {
     const randomIndex = Math.floor(Math.random() * civics.length);
@@ -24,11 +25,20 @@ export default function Page() {
     getQuestion();
   }, []);
 
-  const handleSubmit = () => {
-    if (!answer || !question) return;
-    const gradeResult = gradeAnswer(answer, question);
+  const handleSubmit = async () => {
+    if (!answer || !question?.acceptableAnswers) return;
+    setSubmitting(true);
+    try {
+      const gradeResult = await gradeAnswer(
+        answer,
+        question.question,
+        question.acceptableAnswers,
+      );
 
-    setResult(gradeResult);
+      setResult(gradeResult);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const handleNext = () => {
@@ -58,11 +68,12 @@ export default function Page() {
       </Field>
 
       <Button
-        variant="default"
+        variant={submitting ? "secondary" : "default"}
         className="w-full mb-12 mt-2"
         onClick={handleSubmit}
+        disabled={submitting}
       >
-        Submit
+        {submitting ? <Spinner /> : "Submit"}
       </Button>
 
       {result && (
