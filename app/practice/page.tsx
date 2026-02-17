@@ -6,10 +6,13 @@ import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { gradeAnswer, GradeResult } from "@/lib/grade";
+import { Badge } from "@/components/ui/badge";
+import { Field, FieldLabel, FieldSet } from "@/components/ui/field";
+import { Check, X } from "lucide-react";
 
 export default function Page() {
   const [question, setQuestion] = useState<CivicsQuestion>();
-  const [answer, setAnswer] = useState<string>();
+  const [answer, setAnswer] = useState<string>("");
   const [result, setResult] = useState<GradeResult>();
 
   const getQuestion = () => {
@@ -28,6 +31,13 @@ export default function Page() {
     setResult(gradeResult);
   };
 
+  const handleNext = () => {
+    setAnswer("");
+    setResult(undefined);
+
+    getQuestion();
+  };
+
   if (!question)
     return (
       <div className="flex items-center justify-center">
@@ -36,12 +46,47 @@ export default function Page() {
     );
 
   return (
-    <div>
-      <h1>Practice</h1>
-      <h2>Question {question?.id}</h2>
-      <p>{question.question}</p>
-      <Input />
+    <div className="space-y-4">
+      <div className="flex flex-row justify-between">
+        <h1 className="text-2xl font-bold">Practice</h1>
+        <Badge>Question {question.id}</Badge>
+      </div>
+
+      <Field>
+        <FieldLabel>{question.question}</FieldLabel>
+        <Input value={answer} onChange={(e) => setAnswer(e.target.value)} />
+      </Field>
+
       <Button onClick={handleSubmit}>Submit</Button>
+
+      {result && (
+        <FieldSet>
+          <Field className="gap-1">
+            <div className="flex flex-row justify-between">
+              <FieldLabel className="font-bold">Your answer</FieldLabel>
+              {result.correct ? (
+                <Badge className="bg-green-600/10 text-green-600 dark:bg-green-400/10 dark:text-green-400">
+                  <Check />
+                  Correct Answer
+                </Badge>
+              ) : (
+                <Badge variant="destructive">
+                  <X />
+                  Wrong Answer
+                </Badge>
+              )}
+            </div>
+            <p>{result.input}</p>
+          </Field>
+          <Field className="gap-1">
+            <FieldLabel className="font-bold">Acceptable answers</FieldLabel>
+            {question.acceptableAnswers?.map((a) => (
+              <p key={a}>{a}</p>
+            ))}
+          </Field>
+          <Button onClick={handleNext}>Next</Button>
+        </FieldSet>
+      )}
     </div>
   );
 }

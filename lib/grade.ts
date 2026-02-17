@@ -2,6 +2,7 @@ import { CivicsQuestion } from "./civics";
 
 export type GradeResult = {
   correct: boolean | null;
+  input: string;
   feedback?: string;
   requiresManualReview?: boolean;
   matchedAnswers?: unknown[];
@@ -16,6 +17,7 @@ export function gradeAnswer(
   if (!userAnswer || !userAnswer.trim()) {
     return {
       correct: false,
+      input: "",
       feedback: "No answer provided.",
     };
   }
@@ -31,6 +33,7 @@ export function gradeAnswer(
   if (!question.acceptableAnswers || question.acceptableAnswers.length === 0) {
     return {
       correct: false,
+      input: userAnswer,
       feedback: "No grading data available for this question.",
     };
   }
@@ -42,18 +45,20 @@ export function gradeAnswer(
   return gradeSingleAnswer(userAnswer, question);
 }
 
-function gradeCurrentInfo(userAnswer: string) {
-  return {
-    correct: null,
-    requiresManualReview: true,
-    feedback: "This question requires current information.",
-  };
-}
-
 function gradeVariable(userAnswer: string) {
   return {
     correct: true,
+    input: "",
     feedback: "Answers may vary. Your response is acceptable.",
+  };
+}
+
+function gradeCurrentInfo(userAnswer: string) {
+  return {
+    correct: null,
+    input: "",
+    requiresManualReview: true,
+    feedback: "This question requires current information.",
   };
 }
 
@@ -75,12 +80,14 @@ function gradeMultiAnswer(userAnswer: string, question: CivicsQuestion) {
   if (matched.size >= needed) {
     return {
       correct: true,
+      input: userAnswer,
       matchedAnswers: Array.from(matched),
     };
   }
 
   return {
     correct: false,
+    input: userAnswer,
     matchedCount: matched.size,
     required: needed,
     feedback: `You named ${matched.size}, but ${needed} are required.`,
@@ -102,12 +109,14 @@ function gradeSingleAnswer(userAnswer: string, question: CivicsQuestion) {
   if (matches && matches.length > 0) {
     return {
       correct: true,
+      input: userAnswer,
       matchedAnswers: matches,
     };
   }
 
   return {
     correct: false,
+    input: userAnswer,
     feedback: "That answer does not match an accepted response.",
   };
 }
