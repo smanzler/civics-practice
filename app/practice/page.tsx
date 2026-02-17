@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { ChangeEvent, KeyboardEvent, useEffect, useState } from "react";
 import civics, { CivicsQuestion } from "@/lib/civics";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
@@ -48,6 +48,14 @@ export default function Page() {
     getQuestion();
   };
 
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
+    setAnswer(e.target.value);
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") handleSubmit();
+  };
+
   if (!question)
     return (
       <div className="flex items-center justify-center">
@@ -64,7 +72,11 @@ export default function Page() {
 
       <Field>
         <FieldLabel>{question.question}</FieldLabel>
-        <Input value={answer} onChange={(e) => setAnswer(e.target.value)} />
+        <Input
+          value={answer}
+          onChange={handleChange}
+          onKeyDown={handleKeyDown}
+        />
       </Field>
 
       <Button
