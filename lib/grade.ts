@@ -121,11 +121,16 @@ function gradeSingleAnswer(userAnswer: string, question: CivicsQuestion) {
   };
 }
 
+const MIN_SUBSTRING_LENGTH = 5;
+
 function matchesAnswer(user: string, acceptable: string) {
   const u = normalize(user);
   const a = normalize(acceptable);
 
-  return u === a || u.includes(a) || a.includes(u);
+  if (u === a) return true;
+  if (u.includes(a)) return true;
+  if (u.length >= MIN_SUBSTRING_LENGTH && a.includes(u)) return true;
+  return false;
 }
 
 function normalize(text: string) {
