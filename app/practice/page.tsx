@@ -31,8 +31,7 @@ export default function Page() {
       [questions[i], questions[j]] = [questions[j], questions[i]];
     }
 
-    console.log(questions);
-
+    setQuestionIndex(0);
     setQuestionOrder(questions);
   };
 
@@ -57,8 +56,16 @@ export default function Page() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
 
+  const getNextQuestion = () => {
+    if (!questionOrder || questionIndex >= questionOrder.length) {
+      initializeQuestions();
+      return;
+    }
+
+    setQuestionIndex((prev) => prev + 1);
+  };
+
   const handleSubmit = async () => {
-    console.log("submitting", answer, question);
     if (!answer) return;
 
     if (!question?.acceptableAnswers) {
@@ -84,7 +91,7 @@ export default function Page() {
     setAnswer("");
     setResult(undefined);
 
-    setQuestionIndex((prev) => prev + 1);
+    getNextQuestion();
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
