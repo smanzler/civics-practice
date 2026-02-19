@@ -38,10 +38,33 @@ export default function Page() {
   const [result, setResult] = useState<GradeResult>();
   const [submitting, setSubmitting] = useState(false);
 
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Enter") {
+      if (questionCount && !questions) {
+        handleStartQuiz();
+        return;
+      }
+
+      // already answered
+      if (results?.[currentQuestion] !== undefined) {
+        handleNext();
+        return;
+      }
+
+      // quiz finished
+      if (questions && currentQuestion >= questions.length) {
+        handleStartNewQuiz();
+        return;
+      }
+
+      handleSubmit();
+    }
+  };
+
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [results, currentQuestion, result, answer]);
+  }, [handleKeyDown]);
 
   const question = questions ? civics[questions[currentQuestion]] : undefined;
 
@@ -77,28 +100,6 @@ export default function Page() {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setAnswer(e.target.value);
-  };
-
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === "Enter") {
-      console.log("enter");
-      console.log(questions, currentQuestion);
-      console.log(results);
-      // already answered
-      if (results?.[currentQuestion] !== undefined) {
-        handleNext();
-        return;
-      }
-
-      // quiz finished
-      if (questions && currentQuestion >= questions.length) {
-        console.log("starting new");
-        handleStartNewQuiz();
-        return;
-      }
-
-      handleSubmit();
-    }
   };
 
   const handleNext = () => {

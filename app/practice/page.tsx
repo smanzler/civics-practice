@@ -1,7 +1,7 @@
 "use client";
 
-import { ChangeEvent, KeyboardEvent, useEffect, useState } from "react";
-import civics, { CivicsQuestion } from "@/lib/civics";
+import { ChangeEvent, useEffect, useState } from "react";
+import civics from "@/lib/civics";
 import { Spinner } from "@/components/ui/spinner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,21 +11,54 @@ import { ArrowRight, Check, X } from "lucide-react";
 import { gradeAnswer, GradeResult } from "../actions";
 
 export default function Page() {
-  const [question, setQuestion] = useState<CivicsQuestion>();
+  const [questionIndex, setQuestionIndex] = useState(0);
+  const [questionOrder, setQuestionOrder] = useState<number[] | undefined>(
+    undefined,
+  );
   const [answer, setAnswer] = useState<string>("");
   const [result, setResult] = useState<GradeResult>();
   const [submitting, setSubmitting] = useState(false);
 
-  const getQuestion = () => {
-    const randomIndex = Math.floor(Math.random() * civics.length);
-    setQuestion(civics[randomIndex]);
+  const question = questionOrder
+    ? civics[questionOrder[questionIndex]]
+    : undefined;
+
+  const initializeQuestions = () => {
+    const questions = Array.from({ length: civics.length }, (_, i) => i);
+
+    for (let i = questions.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [questions[i], questions[j]] = [questions[j], questions[i]];
+    }
+
+    console.log(questions);
+
+    setQuestionOrder(questions);
   };
 
   useEffect(() => {
-    getQuestion();
+    initializeQuestions();
   }, []);
 
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Enter") {
+      console.log(result);
+      if (!!result) {
+        handleNext();
+        return;
+      }
+
+      handleSubmit();
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
+
   const handleSubmit = async () => {
+    console.log("submitting", answer, question);
     if (!answer) return;
 
     if (!question?.acceptableAnswers) {
@@ -51,15 +84,11 @@ export default function Page() {
     setAnswer("");
     setResult(undefined);
 
-    getQuestion();
+    setQuestionIndex((prev) => prev + 1);
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
     setAnswer(e.target.value);
-  };
-
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") handleSubmit();
   };
 
   if (!question)
@@ -78,18 +107,14 @@ export default function Page() {
 
       <Field>
         <FieldLabel>{question.question}</FieldLabel>
-        <Input
-          value={answer}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-        />
+        <Input value={answer} onChange={handleChange} />
       </Field>
 
       <Button
         variant={submitting ? "secondary" : "default"}
         className="w-full mb-12 mt-2"
         onClick={handleSubmit}
-        disabled={submitting}
+        disabled={submitting || !!result}
       >
         {submitting ? <Spinner /> : "Submit"}
       </Button>
