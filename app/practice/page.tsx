@@ -26,7 +26,13 @@ export default function Page() {
   }, []);
 
   const handleSubmit = async () => {
-    if (!answer || !question?.acceptableAnswers) return;
+    if (!answer) return;
+
+    if (!question?.acceptableAnswers) {
+      setResult({ correct: false, input: answer });
+      return;
+    }
+
     setSubmitting(true);
     try {
       const gradeResult = await gradeAnswer(

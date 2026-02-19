@@ -8,9 +8,19 @@ import { Slider } from "@/components/ui/slider";
 import civics from "@/lib/civics";
 import useQuizStore from "@/stores/quiz-store";
 import { ArrowRight, Check, X } from "lucide-react";
-import { ChangeEvent, KeyboardEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { gradeAnswer, GradeResult } from "../actions";
 import { Spinner } from "@/components/ui/spinner";
+import { Progress } from "@/components/ui/progress";
+import { ChartContainer } from "@/components/ui/chart";
+import {
+  Label,
+  PolarAngleAxis,
+  PolarGrid,
+  PolarRadiusAxis,
+  RadialBar,
+  RadialBarChart,
+} from "recharts";
 
 export default function Page() {
   const {
@@ -20,6 +30,7 @@ export default function Page() {
     startQuiz,
     nextQuestion,
     answerQuestion,
+    reset,
   } = useQuizStore();
   const [questionCount, setQuestionCount] = useState([20]);
 
@@ -27,8 +38,23 @@ export default function Page() {
   const [result, setResult] = useState<GradeResult>();
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [results, currentQuestion, result, answer]);
+
+  const question = questions ? civics[questions[currentQuestion]] : undefined;
+
   const handleSubmit = async () => {
-    if (!answer || !question?.acceptableAnswers) return;
+    if (!answer) return;
+
+    if (!question?.acceptableAnswers) {
+      answerQuestion(false);
+
+      setResult({ correct: false, input: answer });
+      return;
+    }
+
     setSubmitting(true);
     try {
       const gradeResult = await gradeAnswer(
@@ -53,17 +79,21 @@ export default function Page() {
     setAnswer(e.target.value);
   };
 
-  const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Enter") {
+      console.log("enter");
+      console.log(questions, currentQuestion);
+      console.log(results);
       // already answered
       if (results?.[currentQuestion] !== undefined) {
-        // no more questions
-        if (questions && currentQuestion === questions.length - 1) {
-          handleSeeResults();
-          return;
-        }
-
         handleNext();
+        return;
+      }
+
+      // quiz finished
+      if (questions && currentQuestion >= questions.length) {
+        console.log("starting new");
+        handleStartNewQuiz();
         return;
       }
 
@@ -83,8 +113,11 @@ export default function Page() {
     nextQuestion();
   };
 
-  const handleSeeResults = () => {
-    nextQuestion();
+  const handleStartNewQuiz = () => {
+    setAnswer("");
+    setResult(undefined);
+
+    reset();
   };
 
   if (currentQuestion === undefined || questions === undefined) {
@@ -117,35 +150,112 @@ export default function Page() {
     );
   }
 
-  if (currentQuestion >= questions.length) {
+  if (currentQuestion >= questions.length || !question) {
     if (!results) return;
+
+    const chartData = [
+      {
+        name: "score",
+        value:
+          (Object.values(results).filter(Boolean).length / questions.length) *
+          100,
+        fill: "var(--chart-2)",
+      },
+    ];
+
+    const chartConfig = {
+      score: {
+        label: "Score",
+      },
+    };
 
     return (
       <div className="mx-auto space-y-8 max-w-sm">
-        <h1 className="font-bold text-2xl">Not Bad</h1>
+        <h1 className="font-bold text-2xl">Results</h1>
 
-        <p>
-          %
-          {(Object.values(results).filter(Boolean).length / questions.length) *
-            100}
-        </p>
+        <ChartContainer
+          config={chartConfig}
+          className="mx-auto aspect-square max-h-[250px]"
+        >
+          <RadialBarChart
+            data={chartData}
+            startAngle={90}
+            endAngle={-270}
+            innerRadius={80}
+            outerRadius={110}
+          >
+            <PolarGrid
+              gridType="circle"
+              radialLines={false}
+              stroke="none"
+              className="first:fill-muted last:fill-background"
+              polarRadius={[86, 74]}
+            />
+            <RadialBar dataKey="value" background cornerRadius={10} />
+
+            <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
+            <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
+              <Label
+                content={({ viewBox }) => {
+                  if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                    return (
+                      <text
+                        x={viewBox.cx}
+                        y={viewBox.cy}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                      >
+                        <tspan
+                          x={viewBox.cx}
+                          y={(viewBox.cy || 0) - 28}
+                          className="fill-muted-foreground"
+                        >
+                          %
+                        </tspan>
+                        <tspan
+                          x={viewBox.cx}
+                          y={viewBox.cy}
+                          className="fill-foreground text-4xl font-bold"
+                        >
+                          {chartData[0].value.toLocaleString()}
+                        </tspan>
+                      </text>
+                    );
+                  }
+                }}
+              />
+            </PolarRadiusAxis>
+          </RadialBarChart>
+        </ChartContainer>
+
+        <Button className="w-full" onClick={handleStartNewQuiz}>
+          Start New Quiz
+        </Button>
       </div>
     );
   }
 
-  const question = civics[questions[currentQuestion] - 1];
-
   return (
     <div className="mx-auto space-y-8 max-w-sm">
-      <h1 className="font-bold text-2xl">Quiz</h1>
+      <Field>
+        <div className="flex flex-row justify-between">
+          <FieldLabel>Progress</FieldLabel>
+          <p className="text-sm">
+            {currentQuestion + 1}/{questions.length}
+          </p>
+        </div>
+
+        <Progress value={((currentQuestion + 1) / questions.length) * 100} />
+      </Field>
+
+      <div className="flex flex-row justify-between">
+        <h1 className="text-2xl font-bold">Quiz</h1>
+        <Badge>Question {question.id}</Badge>
+      </div>
 
       <Field>
         <FieldLabel>{question.question}</FieldLabel>
-        <Input
-          value={answer}
-          onChange={handleChange}
-          onKeyDown={handleKeyDown}
-        />
+        <Input value={answer} onChange={handleChange} />
       </Field>
 
       <Button
