@@ -1,29 +1,31 @@
 "use client";
 
-import { ChangeEvent, KeyboardEvent, useEffect, useState } from "react";
-import civics, { CivicsQuestion } from "@/lib/civics";
-import { Spinner } from "@/components/ui/spinner";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Field, FieldLabel, FieldSet } from "@/components/ui/field";
+import { Input } from "@/components/ui/input";
+import { Slider } from "@/components/ui/slider";
+import civics from "@/lib/civics";
+import useQuizStore from "@/stores/quiz-store";
 import { ArrowRight, Check, X } from "lucide-react";
+import { ChangeEvent, KeyboardEvent, useState } from "react";
 import { gradeAnswer, GradeResult } from "../actions";
+import { Spinner } from "@/components/ui/spinner";
 
 export default function Page() {
-  const [question, setQuestion] = useState<CivicsQuestion>();
+  const {
+    results,
+    questions,
+    currentQuestion,
+    startQuiz,
+    nextQuestion,
+    answerQuestion,
+  } = useQuizStore();
+  const [questionCount, setQuestionCount] = useState([20]);
+
   const [answer, setAnswer] = useState<string>("");
   const [result, setResult] = useState<GradeResult>();
   const [submitting, setSubmitting] = useState(false);
-
-  const getQuestion = () => {
-    const randomIndex = Math.floor(Math.random() * civics.length);
-    setQuestion(civics[randomIndex]);
-  };
-
-  useEffect(() => {
-    getQuestion();
-  }, []);
 
   const handleSubmit = async () => {
     if (!answer || !question?.acceptableAnswers) return;
@@ -35,17 +37,16 @@ export default function Page() {
         question.acceptableAnswers,
       );
 
+      answerQuestion(gradeResult.correct ?? false);
+
       setResult(gradeResult);
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleNext = () => {
-    setAnswer("");
-    setResult(undefined);
-
-    getQuestion();
+  const handleStartQuiz = () => {
+    startQuiz(questionCount[0]);
   };
 
   const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -53,22 +54,90 @@ export default function Page() {
   };
 
   const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter") handleSubmit();
+    if (e.key === "Enter") {
+      // already answered
+      if (results?.[currentQuestion] !== undefined) {
+        // no more questions
+        if (questions && currentQuestion === questions.length - 1) {
+          handleSeeResults();
+          return;
+        }
+
+        handleNext();
+        return;
+      }
+
+      handleSubmit();
+    }
   };
 
-  if (!question)
+  const handleNext = () => {
+    if (!result) return;
+
+    const res = result;
+    setAnswer("");
+    setResult(undefined);
+
+    res.correct;
+
+    nextQuestion();
+  };
+
+  const handleSeeResults = () => {
+    nextQuestion();
+  };
+
+  if (currentQuestion === undefined || questions === undefined) {
     return (
-      <div className="flex items-center justify-center">
-        <Spinner />
+      <div className="mx-auto space-y-8 max-w-sm">
+        <h1 className="font-bold text-2xl">Start Quiz</h1>
+        <FieldSet>
+          <Field>
+            <div className="flex flex-row justify-between gap-2">
+              <FieldLabel>Number of Questions</FieldLabel>
+              <strong className="text-sm">{questionCount}</strong>
+            </div>
+            <Slider
+              min={2}
+              max={120}
+              value={questionCount}
+              onValueChange={setQuestionCount}
+            />
+          </Field>
+        </FieldSet>
+
+        <Button
+          className="w-full"
+          disabled={!questionCount}
+          onClick={handleStartQuiz}
+        >
+          Start Quiz
+        </Button>
       </div>
     );
+  }
+
+  if (currentQuestion >= questions.length) {
+    if (!results) return;
+
+    return (
+      <div className="mx-auto space-y-8 max-w-sm">
+        <h1 className="font-bold text-2xl">Not Bad</h1>
+
+        <p>
+          %
+          {(Object.values(results).filter(Boolean).length / questions.length) *
+            100}
+        </p>
+      </div>
+    );
+  }
+
+  const question = civics[questions[currentQuestion] - 1];
 
   return (
     <div className="mx-auto space-y-8 max-w-sm">
-      <div className="flex flex-row justify-between">
-        <h1 className="text-2xl font-bold">Practice</h1>
-        <Badge>Question {question.id}</Badge>
-      </div>
+      <h1 className="font-bold text-2xl">Quiz</h1>
 
       <Field>
         <FieldLabel>{question.question}</FieldLabel>
@@ -83,7 +152,7 @@ export default function Page() {
         variant={submitting ? "secondary" : "default"}
         className="w-full mb-12 mt-2"
         onClick={handleSubmit}
-        disabled={submitting}
+        disabled={submitting || !!result}
       >
         {submitting ? <Spinner /> : "Submit"}
       </Button>
@@ -117,7 +186,9 @@ export default function Page() {
           </FieldSet>
           <div className="flex justify-end">
             <Button variant="default" className="ml-auto" onClick={handleNext}>
-              Next
+              {currentQuestion !== questions.length - 1
+                ? "Next"
+                : "See Results"}
               <ArrowRight />
             </Button>
           </div>

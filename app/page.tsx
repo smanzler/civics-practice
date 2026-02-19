@@ -8,9 +8,14 @@ export default async function Page() {
         <h1 className="text-xl md:text-4xl font-bold">
           US Civics Practice (2025)
         </h1>
-        <Button asChild>
-          <Link href="/practice">Practice</Link>
-        </Button>
+        <div className="flex flex-row gap-2">
+          <Button variant="outline" asChild>
+            <Link href="/practice">Practice</Link>
+          </Button>
+          <Button asChild>
+            <Link href="/quiz">Take a quiz</Link>
+          </Button>
+        </div>
       </div>
     </div>
   );
