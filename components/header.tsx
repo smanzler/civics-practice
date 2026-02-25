@@ -15,15 +15,24 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full px-6 py-4 flex justify-between items-center bg-background border-b">
       <NavigationMenu>
         <NavigationMenuList className="flex-wrap">
-          <NavigationMenuItem>
+          <NavigationMenuItem asChild>
             <NavigationMenuLink asChild>
               <Link className={navigationMenuTriggerStyle()} href="/">
                 Home
               </Link>
             </NavigationMenuLink>
+          </NavigationMenuItem>
+          <NavigationMenuItem asChild>
             <NavigationMenuLink asChild>
               <Link className={navigationMenuTriggerStyle()} href="/practice">
                 Practice
+              </Link>
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+          <NavigationMenuItem asChild>
+            <NavigationMenuLink asChild>
+              <Link className={navigationMenuTriggerStyle()} href="/questions">
+                All Questions
               </Link>
             </NavigationMenuLink>
           </NavigationMenuItem>
