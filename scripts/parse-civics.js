@@ -6,7 +6,8 @@ const raw = fs.readFileSync("scripts/civics.txt", "utf8");
 const text = raw
   .replace(/\r/g, "")
   .replace(/[•▪]/g, "-")
-  .replace(/\n{2,}/g, "\n");
+  .replace(/\n{2,}/g, "\n")
+  .replace(/’/g, "'");
 
 const lines = text.split("\n").map((l) => l.trim());
 
@@ -15,27 +16,6 @@ const results = [];
 let current = null;
 let currentSection = null;
 let currentSubsection = null;
-
-// ---- helpers ----
-
-function detectMinAnswers(question) {
-  const match = question.match(/name (\w+)/i);
-  if (!match) return null;
-
-  const map = {
-    one: 1,
-    two: 2,
-    three: 3,
-    four: 4,
-    five: 5,
-  };
-
-  return map[match[1].toLowerCase()] || null;
-}
-
-function isCurrentInfoQuestion(question) {
-  return /\bnow\?/i.test(question);
-}
 
 // ---- parsing ----
 
@@ -77,15 +57,6 @@ for (const line of lines) {
 
     if (starred) current.starred = true;
 
-    const min = detectMinAnswers(questionText);
-    if (min && min > 1) {
-      current.minAnswersRequired = min;
-    }
-
-    if (isCurrentInfoQuestion(questionText)) {
-      current.requiresCurrentInfo = true;
-    }
-
     continue;
   }
 
@@ -95,6 +66,11 @@ for (const line of lines) {
 
     if (/answers will vary/i.test(answer)) {
       current.variable = true;
+      continue;
+    }
+
+    if (/visit uscis.gov/i.test(answer)) {
+      current.requiresCurrentInfo = true;
       continue;
     }
 
@@ -115,6 +91,6 @@ const cleaned = results.map((q) => {
 });
 
 // Write output
-fs.writeFileSync("lib/civics.json", JSON.stringify(cleaned, null, 2));
+fs.writeFileSync("data/civics.json", JSON.stringify(cleaned, null, 2));
 
 console.log(`Parsed ${cleaned.length} questions → civics.json`);
