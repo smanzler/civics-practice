@@ -40,7 +40,11 @@ export default function Page() {
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Enter") {
-      if (questionCount && !questions) {
+      // quiz not started or finished
+      if (
+        (questionCount && !questions) ||
+        (questions && currentQuestion >= questions.length)
+      ) {
         handleStartQuiz();
         return;
       }
@@ -48,12 +52,6 @@ export default function Page() {
       // already answered
       if (results?.[currentQuestion] !== undefined) {
         handleNext();
-        return;
-      }
-
-      // quiz finished
-      if (questions && currentQuestion >= questions.length) {
-        handleStartNewQuiz();
         return;
       }
 

@@ -1,16 +1,23 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import civics from "@/lib/civics";
 import { Spinner } from "@/components/ui/spinner";
 import { Badge } from "@/components/ui/badge";
-import Question from "@/components/question";
+import Question, { QuestionRef } from "@/components/question";
+import { GradeResult } from "../actions";
+import { Button } from "@/components/ui/button";
+import { ArrowRight } from "lucide-react";
 
 export default function Page() {
   const [questionIndex, setQuestionIndex] = useState(0);
   const [questionOrder, setQuestionOrder] = useState<number[] | undefined>(
     undefined,
   );
+
+  const [result, setResult] = useState<GradeResult>();
+
+  const questionRef = useRef<QuestionRef>(null);
 
   const question = questionOrder
     ? civics[questionOrder[questionIndex]]
@@ -32,6 +39,22 @@ export default function Page() {
     initializeQuestions();
   }, []);
 
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === "Enter") {
+      if (!!result) {
+        handleNext();
+        return;
+      }
+
+      questionRef.current?.submit();
+    }
+  };
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
+
   const handleNext = () => {
     if (!questionOrder || questionIndex >= questionOrder.length) {
       initializeQuestions();
@@ -39,6 +62,8 @@ export default function Page() {
     }
 
     setQuestionIndex((prev) => prev + 1);
+
+    questionRef.current?.reset();
   };
 
   if (!question)
@@ -55,7 +80,20 @@ export default function Page() {
         <Badge>Question {question.id}</Badge>
       </div>
 
-      <Question question={question} onNext={handleNext} />
+      <Question
+        ref={questionRef}
+        question={question}
+        result={result}
+        setResult={setResult}
+        onNext={handleNext}
+      />
+
+      <div className="flex justify-end">
+        <Button variant="default" className="ml-auto" onClick={handleNext}>
+          Next
+          <ArrowRight />
+        </Button>
+      </div>
     </div>
   );
 }
