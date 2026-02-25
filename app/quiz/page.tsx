@@ -3,14 +3,12 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Field, FieldLabel, FieldSet } from "@/components/ui/field";
-import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import civics from "@/lib/civics";
 import useQuizStore from "@/stores/quiz-store";
-import { ArrowRight, Check, X } from "lucide-react";
-import { ChangeEvent, useEffect, useState } from "react";
-import { gradeAnswer, GradeResult } from "../actions";
-import { Spinner } from "@/components/ui/spinner";
+import { ArrowRight } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { GradeResult } from "../actions";
 import { Progress } from "@/components/ui/progress";
 import { ChartContainer } from "@/components/ui/chart";
 import {
@@ -21,6 +19,7 @@ import {
   RadialBar,
   RadialBarChart,
 } from "recharts";
+import Question, { QuestionRef } from "@/components/question";
 
 export default function Page() {
   const {
@@ -34,9 +33,8 @@ export default function Page() {
   } = useQuizStore();
   const [questionCount, setQuestionCount] = useState([20]);
 
-  const [answer, setAnswer] = useState<string>("");
   const [result, setResult] = useState<GradeResult>();
-  const [submitting, setSubmitting] = useState(false);
+  const questionRef = useRef<QuestionRef>(null);
 
   const handleKeyDown = (e: KeyboardEvent) => {
     if (e.key === "Enter") {
@@ -55,7 +53,7 @@ export default function Page() {
         return;
       }
 
-      handleSubmit();
+      questionRef.current?.submit();
     }
   };
 
@@ -66,58 +64,23 @@ export default function Page() {
 
   const question = questions ? civics[questions[currentQuestion]] : undefined;
 
-  const handleSubmit = async () => {
-    if (!answer) return;
-
-    if (!question?.acceptableAnswers) {
-      answerQuestion(false);
-
-      setResult({ correct: false, input: answer });
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      const gradeResult = await gradeAnswer(
-        answer,
-        question.question,
-        question.acceptableAnswers,
-      );
-
-      answerQuestion(gradeResult.correct ?? false);
-
-      setResult(gradeResult);
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const handleStartQuiz = () => {
     startQuiz(questionCount[0]);
-  };
-
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setAnswer(e.target.value);
   };
 
   const handleNext = () => {
     if (!result) return;
 
-    const res = result;
-    setAnswer("");
-    setResult(undefined);
-
-    res.correct;
-
+    questionRef.current?.reset();
     nextQuestion();
   };
 
   const handleStartNewQuiz = () => {
-    setAnswer("");
-    setResult(undefined);
-
+    questionRef.current?.reset();
     reset();
   };
+
+  console.log(results);
 
   if (currentQuestion === undefined || questions === undefined) {
     return (
@@ -252,56 +215,22 @@ export default function Page() {
         <Badge>Question {question.id}</Badge>
       </div>
 
-      <Field>
-        <FieldLabel>{question.question}</FieldLabel>
-        <Input value={answer} onChange={handleChange} />
-      </Field>
-
-      <Button
-        variant={submitting ? "secondary" : "default"}
-        className="w-full mb-12 mt-2"
-        onClick={handleSubmit}
-        disabled={submitting || !!result}
-      >
-        {submitting ? <Spinner /> : "Submit"}
-      </Button>
+      <Question
+        ref={questionRef}
+        question={question}
+        result={result}
+        setResult={setResult}
+        onNext={handleNext}
+        onSubmit={answerQuestion}
+      />
 
       {result && (
-        <>
-          <FieldSet>
-            <Field className="gap-1">
-              <div className="flex flex-row justify-between">
-                <FieldLabel className="font-bold">Your answer</FieldLabel>
-                {result.correct ? (
-                  <Badge className="bg-green-600/10 text-green-600 dark:bg-green-400/10 dark:text-green-400">
-                    <Check />
-                    Correct Answer
-                  </Badge>
-                ) : (
-                  <Badge variant="destructive">
-                    <X />
-                    Wrong Answer
-                  </Badge>
-                )}
-              </div>
-              <p>{result.input}</p>
-            </Field>
-            <Field className="gap-1">
-              <FieldLabel className="font-bold">Acceptable answers</FieldLabel>
-              {question.acceptableAnswers?.map((a) => (
-                <p key={a}>{a}</p>
-              ))}
-            </Field>
-          </FieldSet>
-          <div className="flex justify-end">
-            <Button variant="default" className="ml-auto" onClick={handleNext}>
-              {currentQuestion !== questions.length - 1
-                ? "Next"
-                : "See Results"}
-              <ArrowRight />
-            </Button>
-          </div>
-        </>
+        <div className="flex justify-end">
+          <Button variant="default" className="ml-auto" onClick={handleNext}>
+            Next
+            <ArrowRight />
+          </Button>
+        </div>
       )}
     </div>
   );

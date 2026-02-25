@@ -60,7 +60,7 @@ const Question = forwardRef<QuestionRef, Props>(
           question.acceptableAnswers,
         );
 
-        onSubmit?.(false);
+        onSubmit?.(gradeResult.correct ?? false);
 
         setResult(gradeResult);
       } finally {

@@ -31,6 +31,13 @@ export function Header() {
           </NavigationMenuItem>
           <NavigationMenuItem asChild>
             <NavigationMenuLink asChild>
+              <Link className={navigationMenuTriggerStyle()} href="/quiz">
+                Quiz
+              </Link>
+            </NavigationMenuLink>
+          </NavigationMenuItem>
+          <NavigationMenuItem asChild>
+            <NavigationMenuLink asChild>
               <Link className={navigationMenuTriggerStyle()} href="/questions">
                 All Questions
               </Link>
