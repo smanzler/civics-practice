@@ -80,8 +80,6 @@ export default function Page() {
     reset();
   };
 
-  console.log(results);
-
   if (currentQuestion === undefined || questions === undefined) {
     return (
       <div className="mx-auto space-y-8 max-w-sm">
