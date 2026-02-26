@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 import { Header } from "@/components/header";
-import { QueryProvider } from "@/components/query-provider";
 
 export const metadata: Metadata = {
   title: "Civics Test Practice",
@@ -19,17 +18,15 @@ export default function RootLayout({
       <html lang="en" suppressHydrationWarning>
         <head />
         <body>
-          <QueryProvider>
-            <ThemeProvider
-              attribute="class"
-              defaultTheme="system"
-              enableSystem
-              disableTransitionOnChange
-            >
-              <Header />
-              <main className="px-6 py-8">{children}</main>
-            </ThemeProvider>
-          </QueryProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <Header />
+            <main className="px-6 py-8">{children}</main>
+          </ThemeProvider>
         </body>
       </html>
     </>
