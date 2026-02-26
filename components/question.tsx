@@ -3,7 +3,7 @@ import { Field, FieldLabel, FieldSet } from "./ui/field";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Badge } from "./ui/badge";
-import { ArrowRight, Check, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import { gradeAnswer, GradeResult } from "@/app/actions";
 import {
   ChangeEvent,
@@ -83,7 +83,7 @@ const Question = forwardRef<QuestionRef, Props>(
           variant={submitting ? "secondary" : "default"}
           className="w-full mb-12 mt-2"
           onClick={handleSubmit}
-          disabled={submitting || !!result}
+          disabled={submitting || !!result || !answer}
         >
           {submitting ? <Spinner /> : "Submit"}
         </Button>
