@@ -221,7 +221,8 @@
     "question": "Who is one of your state's U.S. senators now?",
     "section": "AMERICAN GOVERNEMENT",
     "subsection": "System of Government",
-    "variable": true
+    "variable": true,
+    "acceptableAnswers": ["Bernie Moreno"]
   },
   {
     "id": 24,
@@ -266,7 +267,8 @@
     "question": "Name your U.S. representative.",
     "section": "AMERICAN GOVERNEMENT",
     "subsection": "System of Government",
-    "variable": true
+    "variable": true,
+    "acceptableAnswers": ["Greg Landsman"]
   },
   {
     "id": 30,
@@ -274,7 +276,8 @@
     "section": "AMERICAN GOVERNEMENT",
     "subsection": "System of Government",
     "starred": true,
-    "requiresCurrentInfo": true
+    "requiresCurrentInfo": true,
+    "acceptableAnswers": ["Mike Johnson"]
   },
   {
     "id": 31,
@@ -344,7 +347,8 @@
     "section": "AMERICAN GOVERNEMENT",
     "subsection": "System of Government",
     "starred": true,
-    "requiresCurrentInfo": true
+    "requiresCurrentInfo": true,
+    "acceptableAnswers": ["Donald Trump"]
   },
   {
     "id": 39,
@@ -352,7 +356,8 @@
     "section": "AMERICAN GOVERNEMENT",
     "subsection": "System of Government",
     "starred": true,
-    "requiresCurrentInfo": true
+    "requiresCurrentInfo": true,
+    "acceptableAnswers": ["JD Vance"]
   },
   {
     "id": 40,
@@ -529,7 +534,8 @@
     "question": "Who is the Chief Justice of the United States now?",
     "section": "AMERICAN GOVERNEMENT",
     "subsection": "System of Government",
-    "requiresCurrentInfo": true
+    "requiresCurrentInfo": true,
+    "acceptableAnswers": ["John Roberts"]
   },
   {
     "id": 58,
@@ -573,14 +579,16 @@
     "section": "AMERICAN GOVERNEMENT",
     "subsection": "System of Government",
     "starred": true,
-    "variable": true
+    "variable": true,
+    "acceptableAnswers": ["Mike Devine"]
   },
   {
     "id": 62,
     "question": "What is the capital of your state?",
     "section": "AMERICAN GOVERNEMENT",
     "subsection": "System of Government",
-    "variable": true
+    "variable": true,
+    "acceptableAnswers": ["Columbus"]
   },
   {
     "id": 63,
