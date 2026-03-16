@@ -30,11 +30,11 @@ const useQuizStore = create<QuizStore>((set, get) => ({
       }
 
       const morePendingQuestions = newAvailableQuestions.splice(0, questionCount - pendingQuestions.length)
-      set({ questions: [...morePendingQuestions, ...pendingQuestions], availableQuestions: newAvailableQuestions })
+      set({ questions: [...morePendingQuestions, ...pendingQuestions], availableQuestions: newAvailableQuestions, results: {}, currentQuestion: 0 })
     } else {
 
       const questions = availableQuestions.splice(0, questionCount)
-      set({ questions, availableQuestions })
+      set({ questions, availableQuestions, results: {}, currentQuestion: 0 })
     }
   },
   nextQuestion: () => {
