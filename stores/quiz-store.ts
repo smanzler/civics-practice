@@ -5,6 +5,7 @@ type QuizStore = {
   currentQuestion: number;
   questions?: number[];
   results?: Record<number, boolean | undefined>;
+  previousQuestions: number[];
   startQuiz: (questionCount: number) => void;
   nextQuestion: () => void;
   answerQuestion: (correct: boolean) => void;
@@ -14,8 +15,16 @@ type QuizStore = {
 const useQuizStore = create<QuizStore>((set, get) => ({
   currentQuestion: 0,
   questions: undefined,
+  previousQuestions: [],
   startQuiz: (questionCount: number) => {
-    const questions = Array.from({ length: civics.length }, (_, i) => i);
+    if (questionCount > civics.length - get().previousQuestions.length) {
+      console.log("not enough questions to get random")
+      console.log("getting new questions")
+      set({ previousQuestions: [] })
+    }
+
+    const { previousQuestions } = get();
+    const questions = Array.from({ length: civics.length }, (_, i) => i).filter(value => !previousQuestions.includes(value))
 
     for (let i = questions.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
@@ -24,11 +33,12 @@ const useQuizStore = create<QuizStore>((set, get) => ({
 
     const selectedQuestions = questions.slice(0, questionCount);
 
-    set({
+    set(state => ({
       questions: selectedQuestions,
       results: {},
+      previousQuestions: [...state.previousQuestions, ...selectedQuestions],
       currentQuestion: 0,
-    });
+    }));
   },
   nextQuestion: () => {
     if (!get().questions) {

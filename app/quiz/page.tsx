@@ -7,7 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import civics from "@/lib/civics";
 import useQuizStore from "@/stores/quiz-store";
 import { ArrowRight } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { GradeResult } from "../actions";
 import { Progress } from "@/components/ui/progress";
 import { ChartContainer } from "@/components/ui/chart";
@@ -36,7 +36,18 @@ export default function Page() {
   const [result, setResult] = useState<GradeResult>();
   const questionRef = useRef<QuestionRef>(null);
 
-  const handleKeyDown = (e: KeyboardEvent) => {
+  const handleStartQuiz = useCallback(() => {
+    startQuiz(questionCount[0]);
+  }, [questionCount, startQuiz]);
+
+  const handleNext = useCallback(() => {
+    if (!result) return;
+
+    questionRef.current?.reset();
+    nextQuestion();
+  }, [nextQuestion, result]);
+
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === "Enter") {
       // quiz not started or finished
       if (
@@ -55,7 +66,7 @@ export default function Page() {
 
       questionRef.current?.submit();
     }
-  };
+  }, [currentQuestion, handleNext, handleStartQuiz, questionCount, questions, results]);
 
   useEffect(() => {
     window.addEventListener("keydown", handleKeyDown);
@@ -63,17 +74,6 @@ export default function Page() {
   }, [handleKeyDown]);
 
   const question = questions ? civics[questions[currentQuestion]] : undefined;
-
-  const handleStartQuiz = () => {
-    startQuiz(questionCount[0]);
-  };
-
-  const handleNext = () => {
-    if (!result) return;
-
-    questionRef.current?.reset();
-    nextQuestion();
-  };
 
   const handleStartNewQuiz = () => {
     questionRef.current?.reset();
@@ -110,6 +110,7 @@ export default function Page() {
     );
   }
 
+  console.log(currentQuestion, questions.length, results)
   if (currentQuestion >= questions.length || !question) {
     if (!results) return;
 
