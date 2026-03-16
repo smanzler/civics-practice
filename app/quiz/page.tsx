@@ -110,7 +110,6 @@ export default function Page() {
     );
   }
 
-  console.log(currentQuestion, questions.length, results)
   if (currentQuestion >= questions.length || !question) {
     if (!results) return;
 
@@ -213,6 +212,9 @@ export default function Page() {
         <h1 className="text-2xl font-bold">Quiz</h1>
         <Badge>Question {question.id}</Badge>
       </div>
+      <Button onClick={handleStartNewQuiz}>
+        new quiz
+      </Button>
 
       <Question
         ref={questionRef}

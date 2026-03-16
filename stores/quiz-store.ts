@@ -5,7 +5,7 @@ type QuizStore = {
   currentQuestion: number;
   questions?: number[];
   results?: Record<number, boolean | undefined>;
-  previousQuestions: number[];
+  availableQuestions: number[];
   startQuiz: (questionCount: number) => void;
   nextQuestion: () => void;
   answerQuestion: (correct: boolean) => void;
@@ -15,30 +15,27 @@ type QuizStore = {
 const useQuizStore = create<QuizStore>((set, get) => ({
   currentQuestion: 0,
   questions: undefined,
-  previousQuestions: [],
+  availableQuestions: [],
   startQuiz: (questionCount: number) => {
-    if (questionCount > civics.length - get().previousQuestions.length) {
-      console.log("not enough questions to get random")
-      console.log("getting new questions")
-      set({ previousQuestions: [] })
+    const { availableQuestions } = get()
+
+    const pendingQuestions = []
+    if (availableQuestions.length < questionCount) {
+      pendingQuestions.push(...availableQuestions)
+      const newAvailableQuestions = Array.from({ length: civics.length }, (_, i) => i)
+
+      for (let i = newAvailableQuestions.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newAvailableQuestions[i], newAvailableQuestions[j]] = [newAvailableQuestions[j], newAvailableQuestions[i]];
+      }
+
+      const morePendingQuestions = newAvailableQuestions.splice(0, questionCount - pendingQuestions.length)
+      set({ questions: [...morePendingQuestions, ...pendingQuestions], availableQuestions: newAvailableQuestions })
+    } else {
+
+      const questions = availableQuestions.splice(0, questionCount)
+      set({ questions, availableQuestions })
     }
-
-    const { previousQuestions } = get();
-    const questions = Array.from({ length: civics.length }, (_, i) => i).filter(value => !previousQuestions.includes(value))
-
-    for (let i = questions.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [questions[i], questions[j]] = [questions[j], questions[i]];
-    }
-
-    const selectedQuestions = questions.slice(0, questionCount);
-
-    set(state => ({
-      questions: selectedQuestions,
-      results: {},
-      previousQuestions: [...state.previousQuestions, ...selectedQuestions],
-      currentQuestion: 0,
-    }));
   },
   nextQuestion: () => {
     if (!get().questions) {
